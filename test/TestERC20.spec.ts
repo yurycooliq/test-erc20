@@ -48,7 +48,19 @@ describe("TestERC20", function () {
 
     it("Should have an initial total supply of 0", async function () {
       const { token } = await loadFixture(deployTestERC20Fixture);
-      expect(await token.totalSupply()).to.equal(0);
+      expect(await token.totalSupply()).to.equal(ethers.parseUnits("0", tokenDecimals));
+    });
+
+    it("Should revert if trying to initialize again", async function () {
+      const { token, owner } = await loadFixture(deployTestERC20Fixture);
+      // Attempt to call initialize again on the already initialized contract
+      await expect(
+        token.initialize(owner.address, owner.address, owner.address)
+      ).to.be.revertedWithCustomError(token, "InvalidInitialization");
+      // For contracts not using custom errors or if the error string is known directly from OpenZeppelin:
+      // .to.be.revertedWith("Initializable: contract is already initialized"); 
+      // Note: OpenZeppelin UUPSUpgradeable contracts typically use custom errors for this.
+      // We use `InvalidInitialization` as it's the standard error for this case in OZ contracts v5+.
     });
   });
 
